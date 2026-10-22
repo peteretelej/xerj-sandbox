@@ -28,7 +28,7 @@ COPY --from=fetch /fetch/xerj /usr/local/bin/xerj
 RUN adduser -D -H -u 10001 xerj \
   && mkdir -p /data \
   && chown xerj:xerj /data
-USER xerj
+USER 10001
 ENV XERJ_DISABLE_FEEDBACK=1
 VOLUME /data
 EXPOSE 9200

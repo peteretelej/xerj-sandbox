@@ -18,6 +18,8 @@ docker run -d --name "$NAME" \
   --cpus 2 \
   --memory 2g \
   --memory-swap 2g \
+  --read-only \
+  --tmpfs /tmp \
   --security-opt no-new-privileges \
   -p "127.0.0.1:${PORT}:9200" \
   -v "${NAME}-data:/data" \
@@ -27,12 +29,18 @@ docker run -d --name "$NAME" \
 echo "waiting for the node (auth is on, so a 401 means up)..."
 i=0
 while [ "$i" -lt 60 ]; do
-  code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:${PORT}/" || true)
-  if [ "$code" = "401" ] || [ "$code" = "200" ]; then
-    echo "up: http://127.0.0.1:${PORT} (HTTP $code)"
-    echo "admin key (inside the container volume):"
+  code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' "http://127.0.0.1:${PORT}/" || true)
+  if [ "$code" = "401" ]; then
+    echo "up: http://127.0.0.1:${PORT} (auth on)"
+    scripts/posture-check.sh "$NAME"
+    echo "admin key (in the container's named volume):"
     echo "  docker exec $NAME cat /data/admin.key"
     exit 0
+  fi
+  if [ "$code" = "200" ]; then
+    echo "POSTURE FAIL: the node answered 200 without a key; auth is off" >&2
+    docker logs --tail 20 "$NAME" >&2
+    exit 1
   fi
   i=$((i + 1))
   sleep 1

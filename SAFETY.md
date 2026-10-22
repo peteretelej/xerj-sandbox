@@ -17,8 +17,12 @@ sessions. The wrapper exists so the safe configuration is the only configuration
 
 What the container can and cannot do:
 
-- **Cannot read host files.** The only writable path is the named volume mounted at `/data`.
-  Any directory mount is read-only and added explicitly by whoever starts the container.
+- **Cannot read host files.** Nothing from the host is mounted except the named data volume
+  and whatever read-only corpus mounts the operator passes explicitly.
+- **Cannot persist anything outside the data volume.** The root filesystem is mounted
+  read-only with an ephemeral `tmpfs` at `/tmp`; the only persistent writable path is the
+  named volume at `/data`. Directory mounts are read-only and added explicitly by whoever
+  starts the container.
 - **Cannot reach credentials.** No environment variables, secret files, SSH keys, docker
   socket, or cloud credentials are mounted or inherited. The container has no identity.
 - **Cannot listen beyond the machine.** Port publishing is pinned to `127.0.0.1`. Anything
@@ -75,5 +79,6 @@ from inside the container; layer 2 keeps hostile *words* from steering agents on
 - The admin key transits the host terminal when read via `docker exec`. It lives only in the
   container volume, but anyone who can run `docker exec` on the host can read it - the trust
   boundary is the host's docker group, same as any container setup.
-- Outbound network from the container is unrestricted (needed for hub pack pulls). If that
-  ever matters, add an egress policy or run with `--network none` for purely local corpora.
+- Outbound network from the container is unrestricted (needed for pulls from XERJ's hub - its
+  remote shared catalogue of pre-indexed corpora). If that ever matters, add an egress policy
+  or run with `--network none` for purely local corpora.

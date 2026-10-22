@@ -18,11 +18,19 @@ plain words.
 | Base image | `alpine:3.20` | Dockerfile |
 | User | non-root (`uid 10001`) | Dockerfile |
 | CPU / memory | 2 CPUs / 2 GB, memory-swap equal to memory (runaway container self-kills) | dev-container.sh |
-| Publish | `127.0.0.1` only, never a LAN or tailnet interface | dev-container.sh |
-| Auth | on (XERJ default); admin key minted into the container volume | Dockerfile/XERJ |
+| Root filesystem | read-only, with an ephemeral `tmpfs` at `/tmp` (nothing persists outside the data volume) | dev-container.sh |
+| Publish | `127.0.0.1` only, never any other host interface | dev-container.sh |
+| Auth | on (XERJ default); the launcher treats an unauthenticated `200` as posture failure | dev-container.sh |
 | Telemetry | `XERJ_DISABLE_FEEDBACK=1` | Dockerfile |
 | Privilege escalation | `no-new-privileges` | dev-container.sh |
 | Mounts | named volume for `/data`; corpus mounts read-only, explicit, opt-in | dev-container.sh |
+
+Every start self-verifies: the launcher runs `scripts/posture-check.sh` against the fresh
+container and fails loudly on drift.
+
+## Requirements
+
+Docker, and a POSIX shell with `curl` (Linux and macOS natively; Windows via WSL or Git Bash).
 
 ## Quick start
 
@@ -30,7 +38,8 @@ plain words.
 docker build -t xerj-sandbox .
 scripts/dev-container.sh                # build, recreate, health-check
 
-# the admin key lives in the container volume, never on the host disk
+# the admin key lives in the container's Docker-managed volume, not in any bind
+# mount; note anyone with docker access on the host can read it (see SAFETY.md)
 docker exec xerj-sandbox cat /data/admin.key
 
 # query from the host over the ES-compatible API (loopback only)

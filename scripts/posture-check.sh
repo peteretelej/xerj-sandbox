@@ -18,10 +18,21 @@ swap=$(docker inspect -f '{{.HostConfig.MemorySwap}}' "$NAME")
 [ "$mem" != "0" ] || fail "no memory cap set"
 [ "$swap" = "$mem" ] || fail "memory-swap != memory (swap-thrash protection off)"
 
-# published only on loopback
-bad=$(docker inspect -f '{{json .NetworkSettings.Ports}}' "$NAME" |
-  tr ',' '\n' | grep -v '"HostIp":"127.0.0.1"' | grep '"HostIp":"[0-9]' || true)
-[ -z "$bad" ] || fail "non-loopback port binding found: $bad"
+# CPU cap present (2 CPUs)
+[ "$(docker inspect -f '{{.HostConfig.NanoCpus}}' "$NAME")" = "2000000000" ] \
+  || fail "no CPU cap set (expected 2 CPUs)"
+
+# root filesystem read-only, with an ephemeral tmpfs at /tmp
+[ "$(docker inspect -f '{{.HostConfig.ReadonlyRootfs}}' "$NAME")" = "true" ] \
+  || fail "root filesystem is not read-only"
+docker inspect -f '{{range $p, $v := .HostConfig.Tmpfs}}{{println $p}}{{end}}' "$NAME" |
+  grep -qx "/tmp" || fail "no tmpfs at /tmp"
+
+# published only on loopback: every binding's HostIp must be loopback (allowlist,
+# so IPv6 wildcards, empty HostIp, and 0.0.0.0 all fail)
+nonlo=$(docker inspect -f '{{range $p, $b := .NetworkSettings.Ports}}{{range $b}}{{println .HostIp}}{{end}}{{end}}' "$NAME" |
+  grep -vxe '127.0.0.1' -e '::1' || true)
+[ -z "$nonlo" ] || fail "non-loopback port binding found: $nonlo"
 
 # telemetry opt-out present
 docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$NAME" |
@@ -42,7 +53,6 @@ docker inspect -f '{{range .Mounts}}{{println .Source}}{{end}}' "$NAME" |
 # running as the non-root user
 [ "$(docker inspect -f '{{.Config.User}}' "$NAME")" = "10001" ] \
   || fail "not running as uid 10001"
-
 # writable binds are only the named data volume; any directory bind must be ro
 ro=$(docker inspect -f '{{range .Mounts}}{{if eq .Type "bind"}}{{println .Destination}}{{end}}{{end}}' "$NAME")
 rwbinds=$(docker inspect -f '{{range .Mounts}}{{if and (eq .Type "bind") (ne .RW false)}}{{println .Destination}}{{end}}{{end}}' "$NAME")
