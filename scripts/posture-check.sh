@@ -29,9 +29,10 @@ docker inspect -f '{{range $p, $v := .HostConfig.Tmpfs}}{{println $p}}{{end}}' "
   grep -qx "/tmp" || fail "no tmpfs at /tmp"
 
 # published only on loopback: every binding's HostIp must be loopback (allowlist,
-# so IPv6 wildcards, empty HostIp, and 0.0.0.0 all fail)
-nonlo=$(docker inspect -f '{{range $p, $b := .NetworkSettings.Ports}}{{range $b}}{{println .HostIp}}{{end}}{{end}}' "$NAME" |
-  grep -vxe '127.0.0.1' -e '::1' || true)
+# so IPv6 wildcards, 0.0.0.0, and empty HostIp all fail; the ip= prefix keeps
+# empty values visible through command substitution)
+nonlo=$(docker inspect -f '{{range $p, $b := .NetworkSettings.Ports}}{{range $b}}{{printf "ip=%s\n" .HostIp}}{{end}}{{end}}' "$NAME" |
+  grep -vxe 'ip=127.0.0.1' -e 'ip=::1' || true)
 [ -z "$nonlo" ] || fail "non-loopback port binding found: $nonlo"
 
 # telemetry opt-out present
