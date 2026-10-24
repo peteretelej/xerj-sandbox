@@ -34,8 +34,11 @@ What the container can and cannot do:
   to talk to XERJ does so from the same machine, over the loopback API, with the admin key.
 - **Cannot escalate.** Non-root user (uid 10001), no added capabilities,
   `no-new-privileges`, unprivileged alpine base.
-- **Cannot run away.** 2 CPUs and 2 GB, with memory-swap equal to memory, so a leak kills the
-  container instead of thrashing the host.
+- **Cannot run away.** 2 CPUs and 8 GB, with memory-swap equal to memory, so a leak kills the
+  container instead of thrashing the host. The engine itself is hard-capped lower (3 GB
+  process / 1 GB memtables via `xerj.toml`): its Auto limiter mis-sizes under cgroup caps
+  and OOM-killed the container at every cap size once hub packs were restored. The
+  memory-swap-equals-memory self-kill stays the binding constraint.
 - **Cannot drift onto a tampered binary.** The Dockerfile pins the exact upstream release and
   both architecture checksums; a mismatch fails the build. Upgrades are a deliberate,
   reviewable diff of three `ARG`s.

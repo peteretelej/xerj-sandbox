@@ -19,12 +19,13 @@ plain words.
 | Binary | Official release tarball, sha256-pinned per arch in the `Dockerfile` | build |
 | Base image | `alpine:3.20` | Dockerfile |
 | User | non-root (`uid 10001`) | Dockerfile |
-| CPU / memory | 2 CPUs / 2 GB, memory-swap equal to memory (runaway container self-kills) | dev-container.sh |
+| CPU / memory | 2 CPUs / 8 GB, memory-swap equal to memory (runaway container self-kills; sized for steady multi-corpus serving: hub packs open ~31 indices plus local datasets) | dev-container.sh |
 | Root filesystem | read-only, with an ephemeral `tmpfs` at `/tmp` (nothing persists outside the data volume) | dev-container.sh |
 | Publish | `127.0.0.1` only, never any other host interface | dev-container.sh |
 | In-container bind | all interfaces, declared (`XERJ_ALLOW_INSECURE_NETWORK_BIND=true`); the container namespace is the boundary | Dockerfile |
 | Auth | on (XERJ default); the launcher treats an unauthenticated `200` as posture failure | dev-container.sh |
 | Telemetry | `XERJ_DISABLE_FEEDBACK=1` | Dockerfile |
+| Engine memory cap | hard 3 GB process limit via `XERJ_CONFIG=/etc/xerj/xerj.toml` (the Auto limiter OOM-killed at every cgroup size once hub packs were restored) | Dockerfile + `xerj.toml` |
 | Privilege escalation | `no-new-privileges` | dev-container.sh |
 | Mounts | named volume for `/data`; corpus mounts read-only, explicit, opt-in | dev-container.sh |
 
@@ -101,7 +102,7 @@ pull requests:
 
 ```sh
 scripts/smoke-test.sh           # build, start with full posture, index a tiny corpus, query
-scripts/posture-drift-test.sh   # 16 weakened configs; each must be rejected by posture-check
+scripts/posture-drift-test.sh   # 17 weakened configs; each must be rejected by posture-check
 ```
 
 The smoke test runs beside a real node (separate container name and host port) and cleans

@@ -1,0 +1,9 @@
+# XERJ engine limits, enforced via XERJ_CONFIG (see Dockerfile).
+# The engine's Auto memory limiter mis-sizes under cgroup caps: with the cap
+# left on Auto, hub-pack restore (14-31 indices) drove RSS past every cgroup
+# tried (2G, 4G, 8G) and the container self-killed. An explicit process cap
+# keeps the engine inside the container budget; the breaker's drain becomes
+# effective because the target sits well under the cap.
+[limits]
+max_process_memory_mb = 3072
+max_total_memtable_mb = 1024

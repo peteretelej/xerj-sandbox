@@ -25,6 +25,7 @@ RUN case "$(uname -m)" in \
 
 FROM alpine:3.20
 COPY --from=fetch /fetch/xerj /usr/local/bin/xerj
+COPY xerj.toml /etc/xerj/xerj.toml
 RUN adduser -D -H -u 10001 xerj \
   && mkdir -p /data \
   && chown xerj:xerj /data
@@ -34,6 +35,10 @@ ENV XERJ_DISABLE_FEEDBACK=1
 # autoindex resume journals) stays inside the posture boundary: the volume is
 # the only writable path, and nothing lands on the read-only root filesystem.
 ENV HOME=/data
+# Hard engine memory cap (see xerj.toml): the Auto limiter OOM-killed the
+# container at every cgroup size once hub packs were restored; an explicit
+# 3 GB process cap keeps the self-kill predictable and the boundary intact.
+ENV XERJ_CONFIG=/etc/xerj/xerj.toml
 # Declared because the node binds all interfaces INSIDE the container: the
 # container network namespace is the isolation boundary and the host publish is
 # pinned to 127.0.0.1 (posture-check fails on any non-loopback host binding).

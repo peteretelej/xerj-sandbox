@@ -29,9 +29,10 @@ trap cleanup EXIT
 # full conforming config, in the same shape dev-container.sh passes
 conforming() {
   printf '%s ' \
-    --cpus 2 --memory 2g --memory-swap 2g \
+    --cpus 2 --memory 8g --memory-swap 8g \
     --read-only --tmpfs /tmp \
     --security-opt no-new-privileges \
+    -e XERJ_CONFIG=/etc/xerj/xerj.toml \
     -e XERJ_DISABLE_FEEDBACK=1 \
     -p "127.0.0.1:$PORT:9200" \
     -v xerj-sandbox-drift-data:/data
@@ -65,135 +66,160 @@ expect_fail "no memory cap" \
   --cpus 2 \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "memory-swap unlimited instead of capped at memory" \
-  --cpus 2 --memory 2g --memory-swap -1 \
+  --cpus 2 --memory 8g --memory-swap -1 \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "no CPU cap" \
-  --memory 2g --memory-swap 2g \
+  --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "writable root filesystem" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "no tmpfs at /tmp" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "published beyond loopback" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "telemetry opt-out overridden to empty" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK= \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "extra capability added" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   --cap-add NET_BIND_SERVICE \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "no-new-privileges missing" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "running as root" \
   --user 0 \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "writable directory bind" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data \
   -v "$BINDSRC:/hostdata"
 
 expect_fail "docker socket mounted" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data \
   -v /var/run/docker.sock:/var/run/docker.sock
 
 expect_fail "host network mode removes the namespace boundary" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data \
   --network host
 
 expect_fail "publish-all ports bypasses the explicit allowlist" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -v xerj-sandbox-drift-data:/data \
   -P
 
 expect_fail "host pid namespace shared" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data \
   --pid host
 
 expect_fail "host ipc namespace shared" \
-  --cpus 2 --memory 2g --memory-swap 2g \
+  --cpus 2 --memory 8g --memory-swap 8g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
+  -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
   -p "127.0.0.1:$PORT:9200" \
   -v xerj-sandbox-drift-data:/data \
   --ipc host
+
+expect_fail "engine memory cap unwired (XERJ_CONFIG overridden to empty)" \
+  --cpus 2 --memory 8g --memory-swap 8g \
+  --read-only --tmpfs /tmp \
+  --security-opt no-new-privileges \
+  -e XERJ_CONFIG= \
+  -e XERJ_DISABLE_FEEDBACK=1 \
+  -p "127.0.0.1:$PORT:9200" \
+  -v xerj-sandbox-drift-data:/data
 
 if [ "$rc" != "0" ]; then
   echo "drift FAIL: one or more drift cases were not rejected" >&2

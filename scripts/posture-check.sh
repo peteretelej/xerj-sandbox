@@ -63,9 +63,11 @@ case "$(docker inspect -f '{{.HostConfig.IpcMode}}' "$NAME")" in
   *) fail "unrecognized ipc mode" ;;
 esac
 
-# telemetry opt-out present
+# telemetry opt-out present, engine memory cap wired
 docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$NAME" |
   grep -qx "XERJ_DISABLE_FEEDBACK=1" || fail "XERJ_DISABLE_FEEDBACK=1 not set"
+docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$NAME" |
+  grep -qx "XERJ_CONFIG=/etc/xerj/xerj.toml" || fail "XERJ_CONFIG not set (engine memory cap unenforced)"
 
 # never privileged, never can escalate, no docker socket
 [ "$(docker inspect -f '{{.HostConfig.Privileged}}' "$NAME")" = "false" ] \
@@ -87,5 +89,5 @@ ro=$(docker inspect -f '{{range .Mounts}}{{if eq .Type "bind"}}{{println .Destin
 rwbinds=$(docker inspect -f '{{range .Mounts}}{{if and (eq .Type "bind") (ne .RW false)}}{{println .Destination}}{{end}}{{end}}' "$NAME")
 [ -z "$rwbinds" ] || fail "writable directory bind(s) found: $rwbinds (binds must be read-only; data lives in the named volume)"
 
-echo "posture OK: caps, loopback publish, telemetry off, unprivileged, ro binds, no socket"
+echo "posture OK: caps, loopback publish, telemetry off, engine cap wired, unprivileged, ro binds, no socket"
 if [ -n "$ro" ]; then echo "read-only binds: $ro"; fi
