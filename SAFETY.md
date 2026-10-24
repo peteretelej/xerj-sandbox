@@ -21,13 +21,17 @@ What the container can and cannot do:
   and whatever read-only corpus mounts the operator passes explicitly.
 - **Cannot persist anything outside the data volume.** The root filesystem is mounted
   read-only with an ephemeral `tmpfs` at `/tmp`; the only persistent writable path is the
-  named volume at `/data`. Directory mounts are read-only and added explicitly by whoever
-  starts the container.
+  named volume at `/data`, and `HOME` points there, so tool state (hub pack cache,
+  autoindex resume journals) lands in the volume too. Directory mounts are read-only and
+  added explicitly by whoever starts the container.
 - **Cannot reach credentials.** No environment variables, secret files, SSH keys, docker
   socket, or cloud credentials are mounted or inherited. The container has no identity.
-- **Cannot listen beyond the machine.** Port publishing is pinned to `127.0.0.1`. Anything
-  that wants to talk to XERJ does so from the same machine, over the loopback API, with the
-  admin key.
+- **Cannot listen beyond the machine.** Inside the container the node binds all interfaces
+  (`--bind 0.0.0.0`, declared to upstream via `XERJ_ALLOW_INSECURE_NETWORK_BIND=true`): the
+  container's network namespace is the isolation boundary, the namespace has no host access,
+  and the declaration covers exactly that case. On the host, port publishing is pinned to
+  `127.0.0.1` and `posture-check.sh` fails on any non-loopback binding. Anything that wants
+  to talk to XERJ does so from the same machine, over the loopback API, with the admin key.
 - **Cannot escalate.** Non-root user (uid 10001), no added capabilities,
   `no-new-privileges`, unprivileged alpine base.
 - **Cannot run away.** 2 CPUs and 2 GB, with memory-swap equal to memory, so a leak kills the

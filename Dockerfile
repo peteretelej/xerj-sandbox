@@ -30,7 +30,17 @@ RUN adduser -D -H -u 10001 xerj \
   && chown xerj:xerj /data
 USER 10001
 ENV XERJ_DISABLE_FEEDBACK=1
+# HOME lives on the named volume so persistent tool state (hub pack cache,
+# autoindex resume journals) stays inside the posture boundary: the volume is
+# the only writable path, and nothing lands on the read-only root filesystem.
+ENV HOME=/data
+# Declared because the node binds all interfaces INSIDE the container: the
+# container network namespace is the isolation boundary and the host publish is
+# pinned to 127.0.0.1 (posture-check fails on any non-loopback host binding).
+# Upstream requires this explicit declaration for a non-loopback bind without
+# TLS; the API key never crosses a real network interface.
+ENV XERJ_ALLOW_INSECURE_NETWORK_BIND=true
 VOLUME /data
 EXPOSE 9200
 ENTRYPOINT ["/usr/local/bin/xerj"]
-CMD ["--data-dir", "/data"]
+CMD ["--data-dir", "/data", "--bind", "0.0.0.0"]
