@@ -19,8 +19,8 @@ docker rm -f "$NAME" 2>/dev/null || true
 # shellcheck disable=SC2086
 docker run -d --name "$NAME" \
   --cpus 2 \
-  --memory 4g \
-  --memory-swap 4g \
+  --memory 16g \
+  --memory-swap 16g \
   --read-only \
   --tmpfs /tmp \
   --security-opt no-new-privileges \

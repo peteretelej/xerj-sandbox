@@ -19,7 +19,7 @@ plain words.
 | Binary | Official release tarball, sha256-pinned per arch in the `Dockerfile` | build |
 | Base image | `alpine:3.20` | Dockerfile |
 | User | non-root (`uid 10001`) | Dockerfile |
-| CPU / memory | 2 CPUs / 8 GB, memory-swap equal to memory (runaway container self-kills; sized for steady multi-corpus serving: hub packs open ~31 indices plus local datasets) | dev-container.sh |
+| CPU / memory | 2 CPUs / 16 GB, memory-swap equal to memory (runaway container self-kills; TEMPORARY raise - the rc.98 engine outgrows 2G/4G caps with hub packs restored; revert when the upstream memory fixes ship in a release) | dev-container.sh |
 | Root filesystem | read-only, with an ephemeral `tmpfs` at `/tmp` (nothing persists outside the data volume) | dev-container.sh |
 | Publish | `127.0.0.1` only, never any other host interface | dev-container.sh |
 | In-container bind | all interfaces, declared (`XERJ_ALLOW_INSECURE_NETWORK_BIND=true`); the container namespace is the boundary | Dockerfile |
