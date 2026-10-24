@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: shellcheck
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q shellcheck
+          shellcheck scripts/*.sh
+      - name: smoke test (build, posture, auth, index, query)
+        run: scripts/smoke-test.sh
+      - name: posture drift test (every weakened config is rejected)
+        run: scripts/posture-drift-test.sh

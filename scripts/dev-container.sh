@@ -4,8 +4,11 @@
 # (host publishing, --insecure, writable corpus mounts, privileged mode).
 set -eu
 
-NAME=xerj-sandbox
-PORT=9200
+# XERJ_SANDBOX_NAME / XERJ_SANDBOX_PORT override the container name and host
+# port (smoke-test uses both to run beside a real node); posture values never
+# change.
+NAME=${XERJ_SANDBOX_NAME:-xerj-sandbox}
+PORT=${XERJ_SANDBOX_PORT:-9200}
 
 cd "$(dirname "$0")/.."
 docker build -t "$NAME" .

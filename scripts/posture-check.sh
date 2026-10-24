@@ -35,6 +35,34 @@ nonlo=$(docker inspect -f '{{range $p, $b := .NetworkSettings.Ports}}{{range $b}
   grep -vxe 'ip=127.0.0.1' -e 'ip=::1' || true)
 [ -z "$nonlo" ] || fail "non-loopback port binding found: $nonlo"
 
+# same allowlist against the requested config: bindings are only visible in
+# NetworkSettings after start, but HostConfig.PortBindings exists at create -
+# a container created with a broad publish must fail inspection before start
+cfgnonlo=$(docker inspect -f '{{range $p, $b := .HostConfig.PortBindings}}{{range $b}}{{printf "ip=%s\n" .HostIp}}{{end}}{{end}}' "$NAME" |
+  grep -vxe 'ip=127.0.0.1' -e 'ip=::1' || true)
+[ -z "$cfgnonlo" ] || fail "non-loopback port binding in config: $cfgnonlo"
+
+# namespace and network shapes that remove the boundary the publish allowlist
+# assumes. Host networking exposes the node's all-interfaces bind directly on
+# the host; -P publishes without the explicit allowlist; shared pid/ipc
+# namespaces cross the container boundary another way. Unknown values fail
+# closed: this script has no fix-it mode.
+[ "$(docker inspect -f '{{.HostConfig.PublishAllPorts}}' "$NAME")" = "false" ] \
+  || fail "PublishAllPorts is set (publishes without the loopback allowlist)"
+netmode=$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$NAME")
+[ "$netmode" = "default" ] || [ "$netmode" = "bridge" ] \
+  || fail "non-default network mode: $netmode (the loopback publish guarantee does not apply)"
+case "$(docker inspect -f '{{.HostConfig.PidMode}}' "$NAME")" in
+  ""|local) ;;
+  host*|container:*) fail "pid namespace shared with host or another container" ;;
+  *) fail "unrecognized pid mode" ;;
+esac
+case "$(docker inspect -f '{{.HostConfig.IpcMode}}' "$NAME")" in
+  ""|private|shareable) ;;
+  host*|container:*) fail "ipc namespace shared with host or another container" ;;
+  *) fail "unrecognized ipc mode" ;;
+esac
+
 # telemetry opt-out present
 docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$NAME" |
   grep -qx "XERJ_DISABLE_FEEDBACK=1" || fail "XERJ_DISABLE_FEEDBACK=1 not set"
@@ -60,4 +88,4 @@ rwbinds=$(docker inspect -f '{{range .Mounts}}{{if and (eq .Type "bind") (ne .RW
 [ -z "$rwbinds" ] || fail "writable directory bind(s) found: $rwbinds (binds must be read-only; data lives in the named volume)"
 
 echo "posture OK: caps, loopback publish, telemetry off, unprivileged, ro binds, no socket"
-[ -n "$ro" ] && echo "read-only binds: $ro" || true
+if [ -n "$ro" ]; then echo "read-only binds: $ro"; fi
