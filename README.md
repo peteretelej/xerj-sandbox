@@ -24,6 +24,11 @@ npx skills add peteretelej/xerj-sandbox
 start the xerj sandbox and index ./my-clones so I can search it
 ```
 
+```text
+use xerj-sandbox to research the latest PHP CVEs and check if any of our
+company's repos are impacted
+```
+
 The skill's description is the trigger - any XERJ-shaped request ("index this
 folder", "search these docs for X") picks it up. It teaches the setup, the
 safety rules, and how to query. This repo stays the single source of the scripts
