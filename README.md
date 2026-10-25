@@ -32,6 +32,15 @@ plain words.
 Every start self-verifies: the launcher runs `scripts/posture-check.sh` against the fresh
 container and fails loudly on drift.
 
+> [!WARNING]
+> The 16 GB memory cap is a **temporary raise**. XERJ rc.98's memory growth outgrows
+> smaller caps once hub packs are restored - see upstream
+> [#2238](https://github.com/xerj-org/xerj/issues/2238) and
+> [#1940](https://github.com/xerj-org/xerj/issues/1940) (fixed on main, unreleased at
+> rc.98). This wrapper reverts to a tighter cap when a fixed release ships; until then,
+> prefer the explicit engine-side limits in [`xerj.toml`](xerj.toml) (already wired) and
+> keep non-essential packs out of the node.
+
 ## Requirements
 
 Docker, and a POSIX shell with `curl` (Linux and macOS natively; Windows via WSL or Git Bash).
