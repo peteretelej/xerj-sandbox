@@ -20,15 +20,21 @@ capabilities.
 
 ```sh
 git clone https://github.com/peteretelej/xerj-sandbox && cd xerj-sandbox
-docker build -t xerj-sandbox .
 scripts/dev-container.sh                # build, recreate, health-check, posture-verify
 KEY=$(docker exec xerj-sandbox cat /data/admin.key)
 ```
 
 Auth is on. A request without the key must return 401. If it returns 200, stop: that is
-a posture failure - report it, do not proceed.
+a posture failure - report it, do not proceed. (`dev-container.sh` builds the image and
+starts the node; there is no separate build step. The data volume persists across
+recreates, so indexes and packs survive.)
 
 ## Index a corpus (read-only, explicit)
+
+Recreating the container is safe: indexes live in the data volume and survive
+`docker rm -f`. `autoindex` names the dataset after the folder (e.g. `ax-docs`) -
+scope queries to `/<dataset>/_search`, because unscoped `/_search` spans every
+dataset ever indexed on this volume.
 
 ```sh
 docker rm -f xerj-sandbox

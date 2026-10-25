@@ -38,16 +38,21 @@ Manual path - Docker, plus a POSIX shell with `curl` (Linux and macOS natively; 
 via WSL or Git Bash):
 
 ```sh
-docker build -t xerj-sandbox .
-scripts/dev-container.sh                # build, recreate, health-check
+scripts/dev-container.sh                # builds the image, starts the node, posture-checks
 
-# the admin key lives in the container's Docker-managed volume, not in any bind
-# mount; note anyone with docker access on the host can read it (see SAFETY.md)
-docker exec xerj-sandbox cat /data/admin.key
+# the admin key is written by the node on first start and lives in the
+# container's Docker-managed volume; anyone with docker access on the host
+# can read it (see SAFETY.md)
+KEY=$(docker exec xerj-sandbox cat /data/admin.key)
 
-# query from the host over the ES-compatible API (loopback only)
-curl -s http://127.0.0.1:9200/_cat/indices -H "Authorization: ApiKey $(docker exec xerj-sandbox cat /data/admin.key)"
+# search (ES-compatible API, loopback only)
+curl -s http://127.0.0.1:9200/_search -H "Authorization: ApiKey $KEY" -H 'Content-Type: application/json' -d '{"query":{"query_string":{"query":"your terms"}}}'
 ```
+
+The launcher wires XERJ's ES-compatible HTTP API only - it does not set up XERJ's MCP
+endpoint. `autoindex` names each dataset after the folder you index (e.g. `ax-docs`);
+the data volume persists across restarts, so scope queries to `/<dataset>/_search` when
+the node has indexed more than one thing.
 
 Index a corpus (read-only mount, explicit):
 
@@ -72,7 +77,7 @@ scripts/posture-check.sh
 | Binary | Official release tarball, sha256-pinned per arch in the `Dockerfile` | build |
 | Base image | `alpine:3.20` | Dockerfile |
 | User | non-root (`uid 10001`) | Dockerfile |
-| CPU / memory | 2 CPUs / 16 GB, memory-swap equal to memory (runaway container self-kills; TEMPORARY raise - the rc.98 engine outgrows 2G/4G caps with hub packs restored; revert when the upstream memory fixes ship in a release) | dev-container.sh |
+| CPU / memory | 2 CPUs / 16 GB, memory-swap equal to memory (runaway container self-kills; temporary raise - see warning below) | dev-container.sh |
 | Root filesystem | read-only, with an ephemeral `tmpfs` at `/tmp` (nothing persists outside the data volume) | dev-container.sh |
 | Publish | `127.0.0.1` only, never any other host interface | dev-container.sh |
 | In-container bind | all interfaces, declared (`XERJ_ALLOW_INSECURE_NETWORK_BIND=true`); the container namespace is the boundary | Dockerfile |
@@ -87,8 +92,8 @@ container and fails loudly on drift.
 
 > [!WARNING]
 > The 16 GB memory cap is a **temporary raise**. XERJ rc.98's memory growth outgrows
-> smaller caps once hub packs are restored - see upstream
-> [#2238](https://github.com/xerj-org/xerj/issues/2238) and
+> smaller caps once hub packs (pre-indexed, signed corpora from XERJ's shared catalogue)
+> are restored - see upstream [#2238](https://github.com/xerj-org/xerj/issues/2238) and
 > [#1940](https://github.com/xerj-org/xerj/issues/1940) (fixed on main, unreleased at
 > rc.98). This wrapper reverts to a tighter cap when a fixed release ships; until then,
 > prefer the explicit engine-side limits in [`xerj.toml`](xerj.toml) (already wired) and
