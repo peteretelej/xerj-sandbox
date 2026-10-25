@@ -1,8 +1,8 @@
 # Pin binary version AND both checksums together; they are one fact.
 # Checksums come from the GitHub release API asset digests for the musl static builds.
-ARG XERJ_VERSION=1.0.0-rc.98
-ARG XERJ_X86_64_SHA256=550712e9e3c49e4f6cb4602b55a05ce52c3c1ee725ed49431f5d68652bc710d5
-ARG XERJ_AARCH64_SHA256=fcf07ca828c8ea2dd6d17e0819649dc6a4580d6f27ba29554c972328f9c6ee9e
+ARG XERJ_VERSION=1.0.0-rc.99
+ARG XERJ_X86_64_SHA256=f29dd2f9f3dfa4e3eba24401fb52f7a4ed79773a9c3e303d5979745f5c827526
+ARG XERJ_AARCH64_SHA256=1347b81d2b18cf74beefede73146008f15217455abcc7281c177fc0443603364
 
 FROM alpine:3.20 AS fetch
 ARG XERJ_VERSION

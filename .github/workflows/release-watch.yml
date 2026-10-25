@@ -27,8 +27,14 @@ jobs:
           fi
           PINNED="v$(sed -n 's/^ARG XERJ_VERSION=//p' Dockerfile | head -n1)"
           echo "pinned: $PINNED / latest upstream: $LATEST"
+          open_bump_issues() {
+            gh issue list --state open --search "upstream XERJ release available in:title" --json number --jq '.[].number'
+          }
           if [ "$PINNED" = "$LATEST" ]; then
             echo "up to date"
+            for n in $(open_bump_issues); do
+              gh issue close "$n" --comment "the pin now matches the latest upstream release; closing."
+            done
             exit 0
           fi
           TITLE="upstream XERJ release available: $LATEST (pinned $PINNED)"
@@ -36,4 +42,7 @@ jobs:
             echo "an issue for this release is already open"
             exit 0
           fi
+          for n in $(open_bump_issues); do
+            gh issue close "$n" --comment "superseded - latest: $LATEST, pinned: $PINNED"
+          done
           gh issue create --title "$TITLE" --body-file .github/release-bump-body.md

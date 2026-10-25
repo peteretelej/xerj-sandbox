@@ -29,7 +29,7 @@ trap cleanup EXIT
 # full conforming config, in the same shape dev-container.sh passes
 conforming() {
   printf '%s ' \
-    --cpus 2 --memory 16g --memory-swap 16g \
+    --cpus 2 --memory 4g --memory-swap 4g \
     --read-only --tmpfs /tmp \
     --security-opt no-new-privileges \
     -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -72,7 +72,7 @@ expect_fail "no memory cap" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "memory-swap unlimited instead of capped at memory" \
-  --cpus 2 --memory 16g --memory-swap -1 \
+  --cpus 2 --memory 4g --memory-swap -1 \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -81,7 +81,7 @@ expect_fail "memory-swap unlimited instead of capped at memory" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "no CPU cap" \
-  --memory 16g --memory-swap 16g \
+  --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -90,7 +90,7 @@ expect_fail "no CPU cap" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "writable root filesystem" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -99,7 +99,7 @@ expect_fail "writable root filesystem" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "no tmpfs at /tmp" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -108,7 +108,7 @@ expect_fail "no tmpfs at /tmp" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "published beyond loopback" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -117,7 +117,7 @@ expect_fail "published beyond loopback" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "telemetry opt-out overridden to empty" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -126,7 +126,7 @@ expect_fail "telemetry opt-out overridden to empty" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "extra capability added" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   --cap-add NET_BIND_SERVICE \
@@ -136,7 +136,7 @@ expect_fail "extra capability added" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "no-new-privileges missing" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
   -e XERJ_DISABLE_FEEDBACK=1 \
@@ -145,7 +145,7 @@ expect_fail "no-new-privileges missing" \
 
 expect_fail "running as root" \
   --user 0 \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -154,7 +154,7 @@ expect_fail "running as root" \
   -v xerj-sandbox-drift-data:/data
 
 expect_fail "writable directory bind" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -164,7 +164,7 @@ expect_fail "writable directory bind" \
   -v "$BINDSRC:/hostdata"
 
 expect_fail "docker socket mounted" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -174,7 +174,7 @@ expect_fail "docker socket mounted" \
   -v /var/run/docker.sock:/var/run/docker.sock
 
 expect_fail "host network mode removes the namespace boundary" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -184,7 +184,7 @@ expect_fail "host network mode removes the namespace boundary" \
   --network host
 
 expect_fail "publish-all ports bypasses the explicit allowlist" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -193,7 +193,7 @@ expect_fail "publish-all ports bypasses the explicit allowlist" \
   -P
 
 expect_fail "host pid namespace shared" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -203,7 +203,7 @@ expect_fail "host pid namespace shared" \
   --pid host
 
 expect_fail "host ipc namespace shared" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG=/etc/xerj/xerj.toml \
@@ -213,7 +213,7 @@ expect_fail "host ipc namespace shared" \
   --ipc host
 
 expect_fail "engine memory cap unwired (XERJ_CONFIG overridden to empty)" \
-  --cpus 2 --memory 16g --memory-swap 16g \
+  --cpus 2 --memory 4g --memory-swap 4g \
   --read-only --tmpfs /tmp \
   --security-opt no-new-privileges \
   -e XERJ_CONFIG= \

@@ -77,7 +77,7 @@ scripts/posture-check.sh
 | Binary | Official release tarball, sha256-pinned per arch in the `Dockerfile` | build |
 | Base image | `alpine:3.20` | Dockerfile |
 | User | non-root (`uid 10001`) | Dockerfile |
-| CPU / memory | 2 CPUs / 16 GB, memory-swap equal to memory (runaway container self-kills; temporary raise - see warning below) | dev-container.sh |
+| CPU / memory | 2 CPUs / 4 GB, memory-swap equal to memory (runaway container self-kills) | dev-container.sh |
 | Root filesystem | read-only, with an ephemeral `tmpfs` at `/tmp` (nothing persists outside the data volume) | dev-container.sh |
 | Publish | `127.0.0.1` only, never any other host interface | dev-container.sh |
 | In-container bind | all interfaces, declared (`XERJ_ALLOW_INSECURE_NETWORK_BIND=true`); the container namespace is the boundary | Dockerfile |
@@ -90,14 +90,14 @@ scripts/posture-check.sh
 Every start self-verifies: the launcher runs `scripts/posture-check.sh` against the fresh
 container and fails loudly on drift.
 
-> [!WARNING]
-> The 16 GB memory cap is a **temporary raise**. XERJ rc.98's memory growth outgrows
-> smaller caps once hub packs (pre-indexed, signed corpora from XERJ's shared catalogue)
-> are restored - see upstream [#2238](https://github.com/xerj-org/xerj/issues/2238) and
-> [#1940](https://github.com/xerj-org/xerj/issues/1940) (fixed on main, unreleased at
-> rc.98). This wrapper reverts to a tighter cap when a fixed release ships; until then,
-> prefer the explicit engine-side limits in [`xerj.toml`](xerj.toml) (already wired) and
-> keep non-essential packs out of the node.
+> [!NOTE]
+> On rc.98 the engine's memory growth outgrew every cap once hub packs (pre-indexed,
+> signed corpora from XERJ's shared catalogue) were restored - see upstream
+> [#2238](https://github.com/xerj-org/xerj/issues/2238) and
+> [#1940](https://github.com/xerj-org/xerj/issues/1940). rc.99 with the engine-side
+> limits in [`xerj.toml`](xerj.toml) serves the full multi-pack corpus at a few hundred
+> MB steady, so the cap is 4 GB. Keep the engine limits wired: they are what bounds the
+> restore bursts.
 
 ## Content isolation (read this before trusting an answer)
 

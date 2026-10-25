@@ -17,15 +17,14 @@ docker rm -f "$NAME" 2>/dev/null || true
 
 # extra args (e.g. --mount type=bind,src=...,dst=/corpora,readonly) pass through
 # shellcheck disable=SC2086
-# 16 GB is a deliberate temporary raise: XERJ rc.98 memory growth outgrew the
-# 2g and 4g caps once hub packs were restored (upstream issues
-# xerj-org/xerj#2238 and xerj-org/xerj#1940 - fixed on main, not yet in a
-# release). Revert to a tighter cap when a fixed release ships; the
-# release-watch workflow opens the bump issue.
+# 4 GB with the engine-side limits in xerj.toml serves the full multi-pack
+# corpus at a few hundred MB on rc.99 (which fixed the rc.98 growth that
+# outgrew every cap - upstream issues xerj-org/xerj#2238 and
+# xerj-org/xerj#1940). The engine cap is the binding control; keep it wired.
 docker run -d --name "$NAME" \
   --cpus 2 \
-  --memory 16g \
-  --memory-swap 16g \
+  --memory 4g \
+  --memory-swap 4g \
   --read-only \
   --tmpfs /tmp \
   --security-opt no-new-privileges \
