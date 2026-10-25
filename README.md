@@ -14,13 +14,20 @@ plain words.
 
 ## Quick start
 
-Agent-first: install the skill, then hand this repo to your agent. The skill is
-instructions only - this repo stays the single source of the scripts that enforce the
-posture.
+Agent-first: install the skill, then give your agent the task:
 
 ```sh
 npx skills add peteretelej/xerj-sandbox
 ```
+
+```text
+start the xerj sandbox and index ./my-clones so I can search it
+```
+
+The skill's description is the trigger - any XERJ-shaped request ("index this
+folder", "search these docs for X") picks it up. It teaches the setup, the
+safety rules, and how to query. This repo stays the single source of the scripts
+that enforce the posture.
 
 Manual path - Docker, plus a POSIX shell with `curl` (Linux and macOS natively; Windows
 via WSL or Git Bash):
